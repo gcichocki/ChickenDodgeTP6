@@ -2,6 +2,7 @@ import { Component } from './component';
 import { PlayerComponent } from './playerComponent';
 import { EventTrigger } from '../eventTrigger';
 import { Localisation } from '../localisation';
+import { AudioComponent } from './audioComponent';
 
 // # Classe *RefereeComponent*
 // Ce composant permet de déclarer un vainqueur!
@@ -59,7 +60,9 @@ export class RefereeComponent extends Component<IRefereeComponentDesc> {
       }
     });
 
-    if (gameOver) {
+	if (gameOver) {
+		//Joue le son de "fin de partie""
+		AudioComponent.play('end');
       this.winEvent.trigger(bestPlayer!, worstPlayer!);
     }
   }

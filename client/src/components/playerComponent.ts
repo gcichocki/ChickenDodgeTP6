@@ -13,6 +13,7 @@ import { EventTrigger } from '../eventTrigger';
 import { Localisation } from '../localisation';
 import { ILogicComponent } from '../logicSystem';
 import { Timing } from '../timing';
+import { AudioComponent } from './audioComponent';
 import { vec3 } from 'gl-matrix';
 
 enum Facing { Back = "B", Front = "F", Left = "L", Right = "R" }
@@ -198,7 +199,8 @@ export class PlayerComponent extends Component<IPlayerComponentDesc> implements 
   // ## Méthode *updateStandard*
   // Met à jour le mouvement normal du joueur
   private updateStandard() {
-    if (!this.isAttacking && this.input.getKey('attack')) {
+	  if (!this.isAttacking && this.input.getKey('attack')) {
+	  AudioComponent.play('attack');
       this.isAttacking = true;
       this.sprite.animationFrame = 1;
       this.sprite.frameSkip = 1;
@@ -254,21 +256,29 @@ export class PlayerComponent extends Component<IPlayerComponentDesc> implements 
     const heart = obj.getComponent<HeartComponent>('Heart');
     const chicken = obj.getComponent<ChickenComponent>('Chicken');
 
-    if (rupee) {
+	if (rupee) {
+	  // Joue le son "Ramasser un rupee"
+	  AudioComponent.play('rupee_pickup');
       this.score.value += rupee.value;
       obj.active = false;
       obj.parent!.removeChild(obj);
     }
-    if (heart) {
+	if (heart) {
+	  // Joue le son "Ramasser un coeur"
+	  AudioComponent.play('heart_pickup');
       this.life.value += heart.heal;
       obj.active = false;
       obj.parent!.removeChild(obj);
     }
     if (chicken) {
-      if (this.isAttacking) {
-        chicken.onAttack();
-      } else {
-        this.life.value -= chicken.attack;
+		if (this.isAttacking) {
+		  // Joue le son "Frapper un poulet"
+		  AudioComponent.play('chicken_hit');
+          chicken.onAttack();
+		} else {
+		  // Joue le son "Joueur reçoit du dommage"
+		  AudioComponent.play('player_hit');
+          this.life.value -= chicken.attack;
       }
     }
   }

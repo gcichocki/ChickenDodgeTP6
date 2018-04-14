@@ -4,7 +4,9 @@ import { SpriteComponent } from './spriteComponent';
 import { ColliderComponent } from './colliderComponent';
 import { Scene, IEntityDesc } from '../scene';
 import { ILogicComponent } from '../logicSystem';
+import { AudioComponent } from './audioComponent';
 import { vec3 } from 'gl-matrix';
+
 
 let dropId = 0;
 
@@ -27,6 +29,7 @@ export class ChickenComponent extends Component<IChickenComponentDesc> implement
   private heartTemplate: IEntityDesc;
   private rupeeTemplate: IEntityDesc;
   private velocity: vec3;
+  private nextIdle: Date;
 
   // ## Méthode *create*
   // Cette méthode est appelée pour configurer le composant avant
@@ -36,7 +39,9 @@ export class ChickenComponent extends Component<IChickenComponentDesc> implement
     this.rupeeTemplate = descr.rupeeTemplate;
     this.heartAttackChance = descr.heartAttackChance;
     this.heartTemplate = descr.heartTemplate;
-    this.attack = descr.attack;
+	this.attack = descr.attack;
+	this.nextIdle = new Date();
+	this.nextIdle.setSeconds(this.nextIdle.getSeconds() + (2 + Math.random() * 3));
   }
 
   // ## Méthode *setup*
@@ -65,7 +70,13 @@ export class ChickenComponent extends Component<IChickenComponentDesc> implement
     const newTargetDistanceSq = vec3.squaredDistance(this.target, position.local);
     if ((!this.dropped) && (newTargetDistanceSq > targetDistanceSq)) {
       this.drop(this.rupeeTemplate, dropId++);
-    }
+	}
+
+	// Joue le son "Son de poulet"
+	if (new Date() >= this.nextIdle) {
+		AudioComponent.play('chicken_idle');
+		this.nextIdle.setSeconds(this.nextIdle.getSeconds() + (2 + Math.random() * 3));
+	}
 
     this.distance += vec3.length(this.velocity);
     if (this.distance > 500) {
@@ -77,6 +88,12 @@ export class ChickenComponent extends Component<IChickenComponentDesc> implement
   // Cette méthode instancie un objet au même endroit que le
   // poulet.
   private drop(template: IEntityDesc, id: number) {
+	  // Joue le son Rupee / Coeur qui tombe par terre
+	  if (template == this.rupeeTemplate) {
+		  AudioComponent.play('rupee_drop');
+	  } else if (template == this.heartTemplate) {
+		  AudioComponent.play('heart_drop');
+	  }
     const position = this.owner.getComponent<PositionComponent>('Position');
 
     template.components!.Position = position.local;
